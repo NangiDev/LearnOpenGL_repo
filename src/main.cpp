@@ -126,9 +126,14 @@ int main()
 
 	// Define triangle vertices
 	float vertices[] = {
-		-0.5f, -0.5f, 0.0f,
+		// First triangle
+		0.5f, 0.5f, 0.0f,
 		0.5f, -0.5f, 0.0f,
-		0.0f, 0.5f, 0.0f
+		-0.5f, 0.5f, 0.0f,
+		// Second triangle
+		0.5f, -0.5f, 0.0f,
+		-0.5f, -0.5f, 0.0f,
+		-0.5f, 0.5f, 0.0f
 	};
 
 	unsigned int VAO, VBO;
@@ -162,7 +167,7 @@ int main()
 		glUseProgram(shaderProgram);
 		glBindVertexArray(VAO);
 		// Draw arrays as triangles
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawArrays(GL_TRIANGLES, 0, sizeof(vertices) / 3);
 
 		// Swap the buffers
 		glfwSwapBuffers(window);
