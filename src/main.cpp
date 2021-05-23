@@ -72,8 +72,10 @@ int main()
 	// Read shaders
 	string vertex = readShader("shaders/vertex.c");
 	const char *vertexShaderSource = vertex.c_str();
-	string fragment = readShader("shaders/fragment.c");
-	const char *fragmentShaderSource = fragment.c_str();
+	string fragment1 = readShader("shaders/fragment1.c");
+	const char *fragmentShader1Source = fragment1.c_str();
+	string fragment2 = readShader("shaders/fragment2.c");
+	const char *fragmentShader2Source = fragment2.c_str();
 	
 	// Compile and pass vertex shader
 	unsigned int vertexShader;
@@ -91,38 +93,68 @@ int main()
 		cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << endl;
 	}
 
-	// Compile and pass fragment shader
-	unsigned int fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
+	// Compile and pass first fragment shader
+	unsigned int fragment1Shader;
+	fragment1Shader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragment1Shader, 1, &fragmentShader1Source, NULL);
+	glCompileShader(fragment1Shader);
 			
-	// Check compilation of fragment shader
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+	// Check compilation of first fragment shader
+	glGetShaderiv(fragment1Shader, GL_COMPILE_STATUS, &success);
 	if (!success)
 	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		glGetShaderInfoLog(fragment1Shader, 512, NULL, infoLog);
+		cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << endl;
+	}
+	
+	// Compile and pass second fragment shader
+	unsigned int fragment2Shader;
+	fragment2Shader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragment2Shader, 1, &fragmentShader2Source, NULL);
+	glCompileShader(fragment2Shader);
+			
+	// Check compilation of sedond fragment shader
+	glGetShaderiv(fragment2Shader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		glGetShaderInfoLog(fragment2Shader, 512, NULL, infoLog);
 		cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << endl;
 	}
 
-	// Link to shader program object
-	unsigned int shaderProgram;
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
+	// Link to first shader program object
+	unsigned int shader1Program;
+	shader1Program = glCreateProgram();
+	glAttachShader(shader1Program, vertexShader);
+	glAttachShader(shader1Program, fragment1Shader);
+	glLinkProgram(shader1Program);
 
-	// Check linking of shader program
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	// Check linking of first shader program
+	glGetProgramiv(shader1Program, GL_LINK_STATUS, &success);
 	if (!success)
 	{
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		glGetProgramInfoLog(shader1Program, 512, NULL, infoLog);
+		cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << endl;
+	}
+
+	// Link to second shader program object
+	unsigned int shader2Program;
+	shader2Program = glCreateProgram();
+	glAttachShader(shader2Program, vertexShader);
+	glAttachShader(shader2Program, fragment2Shader);
+	glLinkProgram(shader2Program);
+
+	// Check linking of first shader program
+	glGetProgramiv(shader2Program, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		glGetProgramInfoLog(shader2Program, 512, NULL, infoLog);
 		cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << endl;
 	}
 
 	// Delete already linked shader objects
 	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	glDeleteShader(fragment1Shader);
+	glDeleteShader(fragment2Shader);
 
 	// Define first triangle
 	float firstTraiangle[] = {
@@ -172,10 +204,11 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 0.1f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glUseProgram(shaderProgram);
-
+		glUseProgram(shader1Program);
 		glBindVertexArray(VAOs[0]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glUseProgram(shader2Program);
 		glBindVertexArray(VAOs[1]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -188,7 +221,8 @@ int main()
 
 	glDeleteVertexArrays(2, VAOs);
 	glDeleteBuffers(2, VBOs);
-	glDeleteProgram(shaderProgram);
+	glDeleteProgram(shader1Program);
+	glDeleteProgram(shader2Program);
 	
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
