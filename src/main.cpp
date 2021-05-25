@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <math.h>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -158,18 +159,18 @@ int main()
 
 	// Define first triangle
 	float firstTraiangle[] = {
-		// First triangle
-		0.5f, 0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f
+		// Positions		//Colors
+		0.5f, 0.5f, 0.0f,	1.0f, 0.0f, 0.0f,
+		0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, 0.0f,	0.0f, 0.0f, 1.0f
 	};
 
 	// Define second triangle
 	float secondTriangle[] = {
-		// Second triangle
-		0.5f, -0.5f, 0.0f,
-		-0.5f, -0.5f, 0.0f,
-		-0.5f, 0.5f, 0.0f
+		// Positions		//Colors
+		0.5f, -0.5f, 0.0f,	1.0f, 0.0f, 0.0f,
+		-0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,
+		-0.5f, 0.5f, 0.0f,	0.0f, 0.0f, 1.0f
 	};
 
 	// First triangle Array and Buffer objects
@@ -181,16 +182,20 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(firstTraiangle), firstTraiangle, GL_STATIC_DRAW);
 	// Telling OpenGL how to interpret vertex data
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	// Second triangle Array and Buffer objects
 	glBindVertexArray(VAOs[1]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW);
 	// Telling OpenGL how to interpret vertex data
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
+	glEnableVertexAttribArray(1);
 
 	// Render loop
 	while(!glfwWindowShouldClose(window))
@@ -199,7 +204,7 @@ int main()
 		processInput(window);
 
 		// Rendering commands here 
-		
+	
 		// Clear render buffer
 		glClearColor(0.2f, 0.3f, 0.3f, 0.1f);
 		glClear(GL_COLOR_BUFFER_BIT);
@@ -207,8 +212,13 @@ int main()
 		glUseProgram(shader1Program);
 		glBindVertexArray(VAOs[0]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
-
+		
 		glUseProgram(shader2Program);
+		// Pass uniform to fragment buffer 2
+		float timeValue = glfwGetTime();
+		float greenValue = (sin(timeValue) * 0.5f) + 0.5f;
+		int vertexColorLocation = glGetUniformLocation(shader2Program, "ourColor");
+		glUniform4f(vertexColorLocation, 0.f, greenValue, 0.f, 1.f);
 		glBindVertexArray(VAOs[1]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
