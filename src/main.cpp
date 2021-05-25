@@ -92,6 +92,7 @@ int main()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
 	glEnableVertexAttribArray(1);
 
+
 	// Render loop
 	while(!glfwWindowShouldClose(window))
 	{
@@ -105,10 +106,14 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		shader1.use();
+		// Offset triange 2 with vertex shader
+		shader1.setFloat("xOffset", -0.5f);
 		glBindVertexArray(VAOs[0]);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		
 		shader2.use();
+		// Offset triange 2 with vertex shader
+		shader2.setFloat("xOffset", 0.5f);
 		// Pass uniform to fragment buffer 2
 		float timeValue = glfwGetTime();
 		float greenValue = (sin(timeValue) * 0.5f) + 0.5f;
