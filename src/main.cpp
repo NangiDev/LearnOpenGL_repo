@@ -125,6 +125,8 @@ int main()
 
 	glDeleteVertexArrays(2, VAOs);
 	glDeleteBuffers(2, VBOs);
+	shader1.remove();
+	shader2.remove();
 	
 	glfwTerminate();
 	exit(EXIT_SUCCESS);

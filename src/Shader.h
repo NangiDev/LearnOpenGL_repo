@@ -78,6 +78,11 @@ public:
 	{
 		glUseProgram(ID);
 	}
+	// Delete the shader
+	void remove()
+	{
+		glDeleteShader(ID);
+	}
 	// utility uniform functions
 	void setBool(const string &name, bool value) const
 	{
