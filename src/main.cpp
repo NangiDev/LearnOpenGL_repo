@@ -57,8 +57,8 @@ int main()
 	glBindTexture(GL_TEXTURE_2D, texture1);
 	
 	// Specify Texture repeat method for axle S (x) and T (y)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	// Specifiy Texture fitering and mipmap
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
@@ -80,6 +80,14 @@ int main()
 	glGenTextures(1, &texture2);
 	glBindTexture(GL_TEXTURE_2D, texture2);
 
+	// Specify Texture repeat method for axle S (x) and T (y)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	// Specifiy Texture fitering and mipmap
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Magnification does not take mipmap option
+
 	stbi_set_flip_vertically_on_load(true);
 	data = stbi_load("assets/awesomeface.png", &texWidth, &texHeight, &nrChannels, 0);
 	if (data)
@@ -99,10 +107,10 @@ int main()
 	// Define vertices
 	float vertices[] = {
 	    // positions          // colors           // texture coords
-	     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-	     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
+	     0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   2.0f, 2.0f,   // top right
+	     0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   2.0f, 0.0f,   // bottom right
 	    -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-	    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left
+	    -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 2.0f    // top left
 	};
 
 	unsigned int indices[] = {
@@ -160,6 +168,7 @@ int main()
 		float xOffset = (sin(time) * 0.5f);
 		shader.use();
 		shader.setFloat("xOffset", xOffset);
+		shader.setFloat("mixValue", xOffset + 0.5f);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		//glDrawArrays(GL_TRIANGLES, 0, 3);
