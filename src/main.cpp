@@ -52,10 +52,10 @@ int main()
 		0.5f, 1.0f
 	};
 	
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
+	unsigned int texture1, texture2;
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	
 	// Specify Texture repeat method for axle S (x) and T (y)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -75,7 +75,22 @@ int main()
 	{
 		cout << "Failed to load texture" << endl;
 	}
+	stbi_image_free(data);
 
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+
+	stbi_set_flip_vertically_on_load(true);
+	data = stbi_load("assets/awesomeface.png", &texWidth, &texHeight, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		cout << "Failed to load texture" << endl;
+	}
 	stbi_image_free(data);
 	
 	// Create shaders
@@ -120,6 +135,10 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
+	shader.use();
+	shader.setInt("texture1", 0);
+	shader.setInt("texture2", 1);
+
 	// Render loop
 	while(!glfwWindowShouldClose(window))
 	{
@@ -132,9 +151,14 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 0.1f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		shader.use();
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
+
 		float time = glfwGetTime();
 		float xOffset = (sin(time) * 0.5f);
+		shader.use();
 		shader.setFloat("xOffset", xOffset);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
