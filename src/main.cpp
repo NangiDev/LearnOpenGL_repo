@@ -10,11 +10,6 @@ using namespace std;
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0,0,SCR_WIDTH,SCR_HEIGHT);
-}
-
 void processInput(GLFWwindow *window)
 {
 	if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -39,8 +34,9 @@ int main()
 		exit(EXIT_FAILURE);
 	}	
 	glfwMakeContextCurrent(window);
+
 	// Register callbacks	
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetFramebufferSizeCallback(window, []( GLFWwindow* window, int width, int height ) -> void { glViewport(0, 0, width, height); });
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -48,50 +44,34 @@ int main()
 		exit(EXIT_FAILURE);
 	}
 	
-	// Create shaders
-	Shader shader1("shaders/vertex.vs", "shaders/fragment1.fs");
-	Shader shader2("shaders/vertex.vs", "shaders/fragment2.fs");
-
-	// Define first triangle
-	float firstTraiangle[] = {
+	// Define vertices
+	float vertices[] = {
 		// Positions		//Colors
-		0.5f, 0.5f, 0.0f,	1.0f, 0.0f, 0.0f,
+		0.0f, 0.5f, 0.0f,	1.0f, 0.0f, 0.0f,
 		0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,
-		-0.5f, 0.5f, 0.0f,	0.0f, 0.0f, 1.0f
+		-0.5f, -0.5f, 0.0f,	0.0f, 0.0f, 1.0f
 	};
 
-	// Define second triangle
-	float secondTriangle[] = {
-		// Positions		//Colors
-		0.5f, -0.5f, 0.0f,	1.0f, 0.0f, 0.0f,
-		-0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,
-		-0.5f, 0.5f, 0.0f,	0.0f, 0.0f, 1.0f
-	};
+	// Create shaders
+	Shader shader("shaders/vertex.vs", "shaders/fragment.fs");
 
-	// First triangle Array and Buffer objects
-	unsigned int VAOs[2], VBOs[2];
-	glGenVertexArrays(2, VAOs);
-	glGenBuffers(2, VBOs);
-	
-	glBindVertexArray(VAOs[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(firstTraiangle), firstTraiangle, GL_STATIC_DRAW);
+	// Triangle Array and Buffer objects
+	unsigned int VAO, VBO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glBindVertexArray(VAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
 	// Telling OpenGL how to interpret vertex data
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
 	glEnableVertexAttribArray(1);
 
-	// Second triangle Array and Buffer objects
-	glBindVertexArray(VAOs[1]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW);
-	// Telling OpenGL how to interpret vertex data
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3* sizeof(float)));
-	glEnableVertexAttribArray(1);
-
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 
 	// Render loop
 	while(!glfwWindowShouldClose(window))
@@ -105,20 +85,11 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 0.1f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		shader1.use();
-		// Offset triange 2 with vertex shader
-		shader1.setFloat("xOffset", -0.5f);
-		glBindVertexArray(VAOs[0]);
-		glDrawArrays(GL_TRIANGLES, 0, 3);
-		
-		shader2.use();
-		// Offset triange 2 with vertex shader
-		shader2.setFloat("xOffset", 0.5f);
-		// Pass uniform to fragment buffer 2
-		float timeValue = glfwGetTime();
-		float greenValue = (sin(timeValue) * 0.5f) + 0.5f;
-		shader2.setFloat("ourColor", greenValue);
-		glBindVertexArray(VAOs[1]);
+		shader.use();
+		float time = glfwGetTime();
+		float xOffset = (sin(time) * 0.5f);
+		shader.setFloat("xOffset", xOffset);
+		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		// Swap the buffers
@@ -128,10 +99,9 @@ int main()
 		glfwPollEvents();
 	}
 
-	glDeleteVertexArrays(2, VAOs);
-	glDeleteBuffers(2, VBOs);
-	shader1.remove();
-	shader2.remove();
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	shader.remove();
 	
 	glfwTerminate();
 	exit(EXIT_SUCCESS);
