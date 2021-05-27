@@ -5,6 +5,9 @@
 #include <GLFW/glfw3.h>
 #include "Shader.h"
 #include "stb_image.cpp"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 
@@ -146,6 +149,12 @@ int main()
 	shader.use();
 	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
+	
+	// Define transform matrix
+	glm::mat4 trans = glm::mat4(1.0f);
+	trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
+	unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 	// Render loop
 	while(!glfwWindowShouldClose(window))
@@ -171,7 +180,10 @@ int main()
 		shader.setFloat("mixValue", xOffset + 0.5f);
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		//glDrawArrays(GL_TRIANGLES, 0, 3);
+		
+		trans = glm::rotate(trans, glm::radians(xOffset), glm::vec3(0.0, 0.0, -1.0));
+		unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 		// Swap the buffers
 		glfwSwapBuffers(window);
