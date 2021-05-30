@@ -1,10 +1,9 @@
 #include <fstream>
 #include <iostream>
 #include <math.h>
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
 #include "Shader.h"
-#include "stb_image.cpp"
+#include "Window.h"
+#include "Texture.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -22,87 +21,13 @@ void processInput(GLFWwindow *window)
 
 int main()
 {
-	// glfw: Initialize and configure
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // For macOs
+	// Initiate and setup glfw windows
+	Window win = Window(SCR_WIDTH, SCR_HEIGHT);
+	GLFWwindow* window = win.getWindow();
 	
-	// Register window
-	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-	if (window == NULL)
-	{
-		cout << "Failed to create GLFW window" << endl;
-		glfwTerminate();
-		exit(EXIT_FAILURE);
-	}	
-	glfwMakeContextCurrent(window);
-
-	// Register callbacks	
-	glfwSetFramebufferSizeCallback(window, []( GLFWwindow* window, int width, int height ) -> void { glViewport(0, 0, width, height); });
-
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		cout << "Failed to initialize GLAD" << endl;
-		exit(EXIT_FAILURE);
-	}
-
-	// Define texture coordinates
-	float texCoords[] {
-		0.0f, 0.0f,
-		1.0f, 0.0f,
-		0.5f, 1.0f
-	};
-
-	unsigned int texture1, texture2;
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-	
-	// Specify Texture repeat method for axle S (x) and T (y)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	// Specifiy Texture fitering and mipmap
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Magnification does not take mipmap option
-
-	int texWidth, texHeight, nrChannels;
-	unsigned char *data = stbi_load("assets/container.jpg", &texWidth, &texHeight, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		cout << "Failed to load texture" << endl;
-	}
-	stbi_image_free(data);
-
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-
-	// Specify Texture repeat method for axle S (x) and T (y)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-	// Specifiy Texture fitering and mipmap
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // Magnification does not take mipmap option
-
-	stbi_set_flip_vertically_on_load(true);
-	data = stbi_load("assets/awesomeface.png", &texWidth, &texHeight, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texWidth, texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		cout << "Failed to load texture" << endl;
-	}
-	stbi_image_free(data);
+	Texture textureContainer = Texture("assets/container.jpg");
+	Texture textureFace = Texture("assets/awesomeface.png", GL_RGBA);
+	textureFace.flipVertcal(true);
 	
 	// Create shaders
 	Shader shader("shaders/vertex.vs", "shaders/fragment.fs");
@@ -149,6 +74,10 @@ int main()
 	shader.use();
 	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureContainer.texture);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, textureFace.texture);
 	
 	// Define model matrix
 	glm::mat4 model = glm::mat4(1.0f);
@@ -174,26 +103,16 @@ int main()
 	// Define transform matrix
 	glm::mat4 trans = glm::mat4(1.0f);
 	trans = glm::translate(trans, glm::vec3(1.0, 0.0, 0.0));
-
-	glm::mat4 secondTrans = glm::mat4(1.0f);
-	secondTrans = glm::translate(secondTrans, glm::vec3(-1.0, 0.0, 0.0));
 	
 	// Render loop
 	while(!glfwWindowShouldClose(window))
 	{
 		// Input
 		processInput(window);
-
-		// Rendering commands here 
 	
 		// Clear render buffer
 		glClearColor(0.2f, 0.3f, 0.3f, 0.1f);
 		glClear(GL_COLOR_BUFFER_BIT);
-
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		float time = glfwGetTime();
 		float xOffset = (sin(time) * 0.5f);
@@ -206,11 +125,6 @@ int main()
 		unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-		unsigned int secondTransloc = glGetUniformLocation(shader.ID, "transform");
-		glUniformMatrix4fv(secondTransloc, 1, GL_FALSE, glm::value_ptr(secondTrans));
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		
 
 		// Swap the buffers
 		glfwSwapBuffers(window);
