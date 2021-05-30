@@ -54,7 +54,7 @@ int main()
 		1.0f, 0.0f,
 		0.5f, 1.0f
 	};
-	
+
 	unsigned int texture1, texture2;
 	glGenTextures(1, &texture1);
 	glBindTexture(GL_TEXTURE_2D, texture1);
@@ -145,17 +145,39 @@ int main()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
-
+	
 	shader.use();
 	shader.setInt("texture1", 0);
 	shader.setInt("texture2", 1);
 	
+	// Define model matrix
+	glm::mat4 model = glm::mat4(1.0f);
+	model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	// Pass model matrix to vertex shader
+	int modelLoc = glGetUniformLocation(shader.ID, "model");
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	
+	// Define view matrix
+	glm::mat4 view = glm::mat4(1.0f);
+	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0));
+	// Pass view matrix to vertex shader
+	int viewLoc = glGetUniformLocation(shader.ID, "view");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	
+	// Define projection matrix
+	glm::mat4 projection = glm::mat4(1.0f);
+	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+	// Pass projection matrix to vertex shader
+	int projectionLoc = glGetUniformLocation(shader.ID, "projection");
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	
 	// Define transform matrix
 	glm::mat4 trans = glm::mat4(1.0f);
-	trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
-	unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+	trans = glm::translate(trans, glm::vec3(1.0, 0.0, 0.0));
 
+	glm::mat4 secondTrans = glm::mat4(1.0f);
+	secondTrans = glm::translate(secondTrans, glm::vec3(-1.0, 0.0, 0.0));
+	
 	// Render loop
 	while(!glfwWindowShouldClose(window))
 	{
@@ -179,11 +201,16 @@ int main()
 		shader.setFloat("xOffset", xOffset);
 		shader.setFloat("mixValue", xOffset + 0.5f);
 		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		
+
 		trans = glm::rotate(trans, glm::radians(xOffset), glm::vec3(0.0, 0.0, -1.0));
 		unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		unsigned int secondTransloc = glGetUniformLocation(shader.ID, "transform");
+		glUniformMatrix4fv(secondTransloc, 1, GL_FALSE, glm::value_ptr(secondTrans));
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		
 
 		// Swap the buffers
 		glfwSwapBuffers(window);
