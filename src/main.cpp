@@ -161,6 +161,9 @@ int main()
 	// Define transform matrix
 	glm::mat4 trans = glm::mat4(1.0f);
 	trans = glm::translate(trans, glm::vec3(0.0, 0.0, 0.0));
+	unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
 	
 	// Render loop
 	while(!glfwWindowShouldClose(window))
@@ -177,18 +180,16 @@ int main()
 		shader.setFloat("mixValue", 0.5f);
 		glBindVertexArray(VAO);
 
-		float time = glfwGetTime();
-		float xOffset = (sin(time) * 0.5f);
-		trans = glm::rotate(trans, glm::radians(xOffset), glm::vec3(0.0, 0.0, -1.0));
-		unsigned int transformLoc = glGetUniformLocation(shader.ID, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
-
 		for (unsigned int i = 0; i < 10; i++)
 		{
 			glm::mat4 model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePositions[i]);
-			model = glm::rotate(model, glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
+			float angle = 20.0f * i;
+			if (i % 3 == 0)
+				angle = glfwGetTime() * 25.0f;
+			model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
 			shader.setMat4("model", model);
+
 			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		}
 
