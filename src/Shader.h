@@ -3,6 +3,9 @@
 
 #include <exception>
 #include <glad/glad.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <string>
 #include <fstream>
@@ -96,14 +99,18 @@ public:
 	{
 		glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 	}
+	void setMat4(const string &name, glm::mat4 value) const
+	{
+		int loc = glGetUniformLocation(ID, name.c_str());
+		glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(value));
+	}
 private:
 	void checkCompileErrors(unsigned int shader, string  type)
 	{
 		int success;
 		char infoLog[1024];
 		if (type != "PROGRAM")
-		{
-			glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+		{ glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 			if (!success)
 			{
 				glGetShaderInfoLog(shader, 1024, NULL, infoLog);
